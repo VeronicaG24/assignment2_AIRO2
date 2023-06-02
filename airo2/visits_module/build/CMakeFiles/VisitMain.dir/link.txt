@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wall -std=gnu++11  -O3 -DNDEBUG -rdynamic CMakeFiles/VisitMain.dir/VisitSolver.cpp.o CMakeFiles/VisitMain.dir/ExternalSolver.cpp.o CMakeFiles/VisitMain.dir/main.cpp.o -o VisitMain 

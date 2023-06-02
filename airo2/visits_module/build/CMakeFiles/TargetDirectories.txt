@@ -1,0 +1,4 @@
+/home/simone/Desktop/p/visits_module/build/CMakeFiles/Visits.dir
+/home/simone/Desktop/p/visits_module/build/CMakeFiles/VisitMain.dir
+/home/simone/Desktop/p/visits_module/build/CMakeFiles/edit_cache.dir
+/home/simone/Desktop/p/visits_module/build/CMakeFiles/rebuild_cache.dir
