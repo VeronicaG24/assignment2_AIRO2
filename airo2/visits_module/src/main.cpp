@@ -8,43 +8,10 @@
 
 using namespace std;
 
-// generate random float number between 0 and 6
-float generateRandomFloat() {
-    return static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 6));
-}
-
-// Function to generate random waypoints
-void randomWaypoint(float waypoints[24][3]){
-    // Open file to write waypoints
-    ofstream outfile;
-    outfile.open("waypoints.txt", ios_base::app);
-
-    // Random number
-    float randomNumber = 0.0;
-   
-   // Seed the random number generator with the current time
-    srand(static_cast<unsigned int>(time(nullptr)));
-    
-    // Setting random value for x,y waypoints
-    for (int i = 0; i < 24; i++) {
-        for(int j = 0; j < 2; j++) {
-            randomNumber = generateRandomFloat();
-            waypoints[i][j] = randomNumber-3.0;
-        }
-        outfile << "w" << i << "= (" << waypoints[i][0] << ", " << waypoints[i][1] << ", " << waypoints[i][2] << ")" << endl;
-    }
-    outfile.close();
-}
-
-
 int main(int argc, char **argv) {
     
     VisitSolver visitExample;
     string problem;
-
-    float waypoints[24][3] = {};
-    
-    randomWaypoint(waypoints);
     
     if (argc > 2){
         problem = argv[1];
