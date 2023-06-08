@@ -26,6 +26,8 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <cmath>
+#include <random>
 
 #include "armadillo"
 #include <initializer_list>
@@ -69,6 +71,7 @@ void VisitSolver::loadSolver(string *parameters, int n){
   string landmark_file = "visits_domain/landmark.txt";  // change this to the correct path
   parseLandmark(landmark_file);
 
+  gen_rnd();
 
         //startEKF();
 }
@@ -105,10 +108,10 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
         if (value>0){
 
       string from = tmp.substr(0,2);   // from and to are regions, need to extract wps (poses)
-      string to = tmp.substr(3,2);
+      string to = tmp.substr(3,2);     // HERE ARE EXTRACTED THE NAME OF THE REGIONS (SUCH AS r0, r1 AND SO ON...)
 
 
-     // distance_euc(from, to);
+      distance_euc(from, to);
 
     }
   }
@@ -174,7 +177,7 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
 
          double VisitSolver::calculateExtern(double external, double total_cost){
        //float random1 = static_cast <float> (rand())/static_cast <float>(RAND_MAX);
-       double cost = 2;//random1;
+       double cost = 2;//random1; TODO: change it into distance + unc(trace)
        return cost;
      }
 
@@ -200,7 +203,7 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
 
          pose3 = (double)atof(line.substr(curr,next-curr).c_str());
 
-         waypoint[waypoint_name] = vector<double> {pose1, pose2, pose3};
+         waypoint[waypoint_name] = vector<double> {pose1, pose2, pose3};  //HERE ARE EXTRACTED THE WAYPOINTS POSITION
        }
      }
 
@@ -228,15 +231,71 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
 
        pose3 = (double)atof(line.substr(curr,next-curr).c_str());
 
-       landmark[landmark_name] = vector<double> {pose1, pose2, pose3};
+       landmark[landmark_name] = vector<double> {pose1, pose2, pose3};  //SAME AS PARSEWAYPOINT
      }
    }
    
  }
 
 
-  //void VisitSolver::distance_euc( string from, string to){
-  //} 
+  void VisitSolver::distance_euc(string from, string to){
+    string wp[5] = {"wp0","wp1","wp2","wp3","wp4"};
+    map <string, string> regions;
+    regions["r0"] = wp[0];
+    regions["r1"] = wp[1];
+    regions["r2"] = wp[2];
+    regions["r3"] = wp[3];
+    regions["r4"] = wp[4];
+
+    double x1 = waypoint[regions[from]].at(0);
+    double y1 = waypoint[regions[from]].at(1);
+    
+    double x2 = waypoint[regions[to]].at(0);
+    double y2 = waypoint[regions[to]].at(1);
+    
+    distance = sqrt(pow((x2-x1),2) + pow((y2-y1),2));
+    test(distance,"test.txt");
+  }
+
+  void VisitSolver::test(double d, const std::string& nomeFile) {
+    std::ofstream file(nomeFile);
+    if (file.is_open()) {
+        file << d;
+        file.close();
+        std::cout << "Numero reale scritto sul file con successo." << std::endl;
+    } else {
+        std::cout << "Impossibile aprire il file." << std::endl;
+    }
+  }
+
+  void VisitSolver::gen_rnd() {
+    // Initialise stuff...
+    float waypoints[24][3];
+    // Open the file waypoint.txt, to generate on it the random waypoints
+    ofstream outfile;
+    // We first open the file in trunc mode and then close it, so the waypoints.txt file will be emptied
+    outfile.open("waypoints.txt", ios_base::trunc);
+    outfile.close();
+    outfile.open("waypoints.txt", ios_base::app);
+    // Initialize the random number generator 
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(-3.0, 3.0);
+    // Setting random value for x,y waypoints
+    for (int i = 5; i <= 28; i++){
+        for(int j = 0; j<2; j++){
+            waypoints[i][j] = dis(gen);
+            waypoints[i][j] = std::trunc(waypoints[i][j] * 100.0) / 100.0;
+            if(j==0) {
+              outfile<<"wp"<<i<<"["<<waypoints[i][j]<<",";
+            }
+            else {
+              outfile<<waypoints[i][j]<<"]"<<std::endl;
+            }
+        }
+    }
+    outfile.close();
+  } 
 
 
 
