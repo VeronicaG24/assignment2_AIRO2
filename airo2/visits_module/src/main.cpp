@@ -2,17 +2,33 @@
 #include "VisitSolver.h"
 #include <fstream>
 #include <list>
-#include <bits/stdc++.h> 
+#include <bits/stdc++.h>
+#include <new>
 
 using namespace std;
 
+// Function to generate random waypoints
+void randomWaypoint(float waypoints[24][3]){
+  // Setting random value for x,y waypoints
+  for (int i = 0; i < 23; i++){
+    for(int j = 0; j<2; j++){
+      waypoints[i][j] = rand() % 7;
+      waypoints[i][j] = waypoints[i][j] -3;
+    }
+  }
+}
 
 
 int main(int argc, char **argv) {
     
     VisitSolver visitExample;
     string problem;
+
+
+    float waypoints[24][3] = {};
     
+    randomWaypoint(waypoints);
+
     if (argc > 2){
         problem = argv[1];
     }else{
