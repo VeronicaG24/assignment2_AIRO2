@@ -71,7 +71,7 @@ void VisitSolver::loadSolver(string *parameters, int n){
   string landmark_file = "visits_domain/landmark.txt";  // change this to the correct path
   parseLandmark(landmark_file);
 
-  gen_rnd();
+  gen_rnd(waypoint_file);
 
         //startEKF();
 }
@@ -268,26 +268,34 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
     }
   }
 
-  void VisitSolver::gen_rnd() {
+  void VisitSolver::gen_rnd(string p) {
     // Initialise stuff...
     float waypoints[24][3];
     // Open the file waypoint.txt, to generate on it the random waypoints
     ofstream outfile;
     // We first open the file in trunc mode and then close it, so the waypoints.txt file will be emptied
-    outfile.open("waypoints.txt", ios_base::trunc);
+    outfile.open(p, ios_base::trunc);
     outfile.close();
-    outfile.open("waypoints.txt", ios_base::app);
+    outfile.open(p, ios_base::app);
+    // Write the five waypoints that are already known
+    outfile<<"wp0[0,0,0]"<<std::endl;
+    outfile<<"wp1[-2.5,2.5,0]"<<std::endl;
+    outfile<<"wp2[2.5,2.5,1.57]"<<std::endl;
+    outfile<<"wp3[-2.5,-2.5,3.14]"<<std::endl;
+    outfile<<"wp4[2.5,-2.5,-1.57]"<<std::endl;
     // Initialize the random number generator 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(-3.0, 3.0);
     // Setting random value for x,y waypoints
     for (int i = 5; i <= 28; i++){
-        for(int j = 0; j<2; j++){
+        for(int j = 0; j <= 2; j++){
             waypoints[i][j] = dis(gen);
             waypoints[i][j] = std::trunc(waypoints[i][j] * 100.0) / 100.0;
             if(j==0) {
               outfile<<"wp"<<i<<"["<<waypoints[i][j]<<",";
+            }else if(j==1) {
+              outfile<<waypoints[i][j]<<",";
             }
             else {
               outfile<<waypoints[i][j]<<"]"<<std::endl;
@@ -296,10 +304,6 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
     }
     outfile.close();
   } 
-
-
-
-
 
 
 
