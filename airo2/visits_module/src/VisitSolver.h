@@ -55,7 +55,7 @@ public:
     void parseParameters(string parameters);
     void distance_euc(string from, string to);
     void test(double d, const std::string& nomeFile);
-    void gen_rnd();
+    void gen_rnd(string p);
 
 private:
     list<string> affected;
