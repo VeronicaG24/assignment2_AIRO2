@@ -41,6 +41,7 @@ public:
     virtual  list<string> getDependencies();
     map<string, vector<double>> waypoint;
     map<string, vector<double>> landmark;
+    double distance;
    
     void parseWaypoint(string waypoint_file);
     void parseLandmark(string landmark_file);
@@ -52,7 +53,8 @@ public:
    
    
     void parseParameters(string parameters);
- 
+    void distance_euc(string from, string to);
+    void test(double d, const std::string& nomeFile);
 
 private:
     list<string> affected;
