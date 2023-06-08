@@ -18,7 +18,6 @@ void randomWaypoint(float waypoints[24][3]){
   }
 }
 
-
 int main(int argc, char **argv) {
     
     VisitSolver visitExample;
