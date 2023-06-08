@@ -19,6 +19,7 @@ void randomWaypoint(float waypoints[24][3]){
             outfile<<waypoints[i][j];
         }
     }
+    outfile.close();
 }
 
 
