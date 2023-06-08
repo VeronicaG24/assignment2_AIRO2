@@ -9,14 +9,19 @@ using namespace std;
 
 // Function to generate random waypoints
 void randomWaypoint(float waypoints[24][3]){
-  // Setting random value for x,y waypoints
-  for (int i = 0; i < 23; i++){
-    for(int j = 0; j<2; j++){
-      waypoints[i][j] = rand() % 7;
-      waypoints[i][j] = waypoints[i][j] -3;
+    ofstream outfile;
+    outfile.open("waypoints.txt", ios_base::app);
+    // Setting random value for x,y waypoints
+    for (int i = 0; i < 23; i++){
+        for(int j = 0; j<2; j++){
+            waypoints[i][j] = rand() % 7;
+            waypoints[i][j] = waypoints[i][j] -3;
+            outfile<<waypoints[i][j];
+        }
     }
-  }
 }
+
+
 
 int main(int argc, char **argv) {
     
@@ -27,6 +32,7 @@ int main(int argc, char **argv) {
     float waypoints[24][3] = {};
     
     randomWaypoint(waypoints);
+    
 
     if (argc > 2){
         problem = argv[1];
