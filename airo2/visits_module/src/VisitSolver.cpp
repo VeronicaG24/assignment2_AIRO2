@@ -28,9 +28,11 @@
 #include <algorithm>
 #include <cmath>
 #include <random>
+#include <stdlib.h>
 
 #include "armadillo"
 #include <initializer_list>
+#include <bits/stdc++.h>
 
 using namespace std;
 using namespace arma;
@@ -58,7 +60,10 @@ VisitSolver::~VisitSolver(){
 void VisitSolver::loadSolver(string *parameters, int n){
   starting_position = "r0";
   string Paramers = parameters[0];
-
+  cout << "Insert maximum number of link between nodes: 1 to 24\n";
+  cin >> k;
+  cout << "K is: " << k;
+  
   char const *x[]={"dummy"};
   char const *y[]={"act-cost","triggered"};
   parseParameters(Paramers);
@@ -268,9 +273,35 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
     }
   }
 
+  void VisitSolver::build_graph(int k, float waypoints[][3]) {
+    int *index_min = new int[k];
+    for (int i = 0; i < 29; i++) {
+      for (int j = 0; j < 29; j++) {
+        if (i!=j)
+          adj_matrix[i][j] = sqrt(pow((waypoints[i][0] - waypoints[j][0]), 2) + pow((waypoints[i][1] - waypoints[j][1]), 2));
+      }
+      for(int p=0;p<k;p++) {
+	      int min=p;
+        for(int a=p+1;a<28;a++)
+        	if (adj_matrix[i][a]<adj_matrix[i][min]) {
+            min = a;
+            index_min[p] = min;
+          }
+          double temp=adj_matrix[i][min];
+          adj_matrix[i][min] = adj_matrix[i][p];
+          adj_matrix[i][p] = temp;
+        for (int j = 0; j < 29; j++)
+          if (j != index_min[p])
+            adj_matrix[i][j] = 0.0;
+      }
+    }
+    delete [] index_min;
+  }
+  
+
+
   void VisitSolver::gen_rnd(string p) {
     // Initialise stuff...
-    float waypoints[24][3];
     // Open the file waypoint.txt, to generate on it the random waypoints
     ofstream outfile;
     // We first open the file in trunc mode and then close it, so the waypoints.txt file will be emptied
@@ -288,6 +319,17 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(-3.0, 3.0);
     // Setting random value for x,y waypoints
+    float waypoints[29][3];
+    waypoints[0][0] = 0.0;
+    waypoints[0][1] = 0.0;
+    waypoints[1][0] = -2.5;
+    waypoints[1][1] = 2.5;
+    waypoints[2][0] = 2.5;
+    waypoints[2][1] = 2.5;
+    waypoints[3][0] = -2.5;
+    waypoints[3][1] = -2.5;
+    waypoints[4][0] = 2.5;
+    waypoints[4][1] = -2.5;
     for (int i = 5; i <= 28; i++){
         for(int j = 0; j <= 2; j++){
             waypoints[i][j] = dis(gen);
@@ -302,8 +344,10 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
             }
         }
     }
+
     outfile.close();
-  } 
+    build_graph(k, waypoints);
+  }
 
 
 
