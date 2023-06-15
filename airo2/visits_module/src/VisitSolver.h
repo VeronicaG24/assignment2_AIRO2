@@ -42,15 +42,19 @@ public:
     map<string, vector<double>> waypoint;
     map<string, vector<double>> landmark;
     double distance;
-   
+
     void parseWaypoint(string waypoint_file);
     void parseLandmark(string landmark_file);
      
     map<string, vector<string>> region_mapping;
     vector <string> source, target; 
     string starting_position;
-     
-   
+
+    int k;
+    //adiajent matrix
+    double adj_matrix[29][29] = {};
+
+    void build_graph(int dim, float waypoint[][3]);
    
     void parseParameters(string parameters);
     void distance_euc(string from, string to);
