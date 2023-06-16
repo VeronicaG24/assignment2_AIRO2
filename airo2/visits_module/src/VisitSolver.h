@@ -42,6 +42,12 @@ public:
     map<string, vector<double>> waypoint;
     map<string, vector<double>> landmark;
     double distance;
+    double dist_matrix[29][29];
+    double useful_array[29];
+    int adj_matrix[29][29];
+    int k;
+    string wp[29] = {"wp0","wp1","wp2","wp3","wp4","wp5","wp6","wp7","wp8","wp9","wp10","wp11","wp12","wp13","wp14","wp15","wp16","wp17","wp18","wp19","wp20","wp21","wp22","wp23","wp24","wp25","wp26","wp27","wp28"};
+    string reg[29] = {"r0","r1","r2","r3","r4","r5","r6","r7","r8","r9","r10","r11","r12","r13","r14","r15","r16","r17","r18","r19","r20","r21","r22","r23","r24","r25","r26","r27","r28"};
    
     void parseWaypoint(string waypoint_file);
     void parseLandmark(string landmark_file);
@@ -50,11 +56,12 @@ public:
     vector <string> source, target; 
     string starting_position;
      
-   
-   
+    int find_min();
+    void build_graph();
     void parseParameters(string parameters);
-    void distance_euc(string from, string to);
+    double distance_euc(string from, string to);
     void test(double d, const std::string& nomeFile);
+    void test2(const std::string& nomeFile);
     void gen_rnd(string p);
 
 private:
