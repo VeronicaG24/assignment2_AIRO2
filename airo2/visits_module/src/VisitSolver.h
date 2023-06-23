@@ -21,7 +21,6 @@ public:
     virtual  list<string> getParameters();
     virtual  list<string> getDependencies();
     map<string, vector<double>> waypoint;
-    map<string, vector<double>> landmark;
     double distance;
     double act_dist;
     double dist_matrix[30][30];
@@ -32,7 +31,6 @@ public:
     string reg[30] = {"r0","r1","r2","r3","r4","r5","r6","r7","r8","r9","r10","r11","r12","r13","r14","r15","r16","r17","r18","r19","r20","r21","r22","r23","r24","r25","r26","r27","r28", "r29"};
    
     void parseWaypoint(string waypoint_file);
-    void parseLandmark(string landmark_file);
      
     map<string, vector<string>> region_mapping;
     vector <string> source, target; 
@@ -44,11 +42,6 @@ public:
     double distance_euc(string from, string to);
     double compute_path(string from, string to);
     int find_unvis(double distances[30], bool visited[30]);
-    void test(double d, const std::string& nomeFile);
-    void test2(int i, const std::string& nomeFile);
-    void test3(string s, const std::string& nomeFile);
-    void print_matrix(const std::string& nomeFile);
-
     void gen_rnd(string p);
     int extract_num(string r);
 
@@ -56,7 +49,7 @@ private:
     list<string> affected;
     list<string> dependencies;
       
-    double calculateExtern(double external, double total_cost);
+    double calculateExtern();
     //void localize(string from, string to);
     vector<string> findParameters(string line, int&n);
 
