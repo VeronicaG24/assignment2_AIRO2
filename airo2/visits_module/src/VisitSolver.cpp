@@ -1,4 +1,4 @@
-    /*
+/*
      <one line to give the program's name and a brief idea of what it does.>
      Copyright (C) 2015  <copyright holder> <email>
      
@@ -36,9 +36,6 @@ using namespace std;
 using namespace arma;
 
 
-
-    //map <string, vector<double> > region_mapping;
-
 extern "C" ExternalSolver* create_object(){
   return new VisitSolver();
 }
@@ -65,26 +62,33 @@ void VisitSolver::loadSolver(string *parameters, int n){
   affected = list<string>(x,x+1);
   dependencies = list<string>(y,y+2);
 
+  std::cin>>k;
+  std::cout<<std::endl;
+  while(k < 1 || k > 30) {
+    std::cout<<"Error! Please insert a value between 1 and 30"<<std::endl;
+    std::cin>>k;
+    std::cout<<std::endl;
+  }
+
   string waypoint_file = "visits_domain/waypoint.txt";   // change this to the correct path
+  gen_rnd(waypoint_file);                                // Before parsing the waypoints, we generate the 24 random waypoints
   parseWaypoint(waypoint_file);
 
   string landmark_file = "visits_domain/landmark.txt";  // change this to the correct path
   parseLandmark(landmark_file);
 
-  gen_rnd(waypoint_file);
-
-        //startEKF();
+  build_graph();                                        // Now we build the graph to connect all the waypoints we've generated
 }
 
 map<string,double> VisitSolver::callExternalSolver(map<string,double> initialState,bool isHeuristic){
-
   map<string, double> toReturn;
   map<string, double>::iterator iSIt = initialState.begin();
   map<string, double>::iterator isEnd = initialState.end();
   double dummy;
+  double dummy2;
   double act_cost;
 
-
+  map<string, double> is_connected;
   map<string, double> trigger;
 
   for(;iSIt!=isEnd;++iSIt){
@@ -92,6 +96,9 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
     string parameter = iSIt->first;
     string function = iSIt->first;
     double value = iSIt->second;
+
+    //test(value,"test.txt");
+    //test3(function,"test2.txt");
 
     function.erase(0,1);
     function.erase(function.length()-1,function.length());
@@ -106,25 +113,30 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
       if(function=="triggered"){
         trigger[arg] = value>0?1:0;
         if (value>0){
-
       string from = tmp.substr(0,2);   // from and to are regions, need to extract wps (poses)
-      string to = tmp.substr(3,2);     // HERE ARE EXTRACTED THE NAME OF THE REGIONS (SUCH AS r0, r1 AND SO ON...)
+      string to = tmp.substr(3,2);
+      // HERE ARE EXTRACTED THE NAME OF THE REGIONS (SUCH AS r0, r1 AND SO ON...)
 
 
-      distance_euc(from, to);
+      act_dist=compute_path(from, to);
+      if(act_dist == 10000) {
+        act_dist = -1000;
+      }
+      //test(act_dist,"partial_dist.txt");
 
     }
   }
 }else{
   if(function=="dummy"){
-    dummy = value;
+    dummy = act_dist;
 
-  }else if(function=="act-cost"){
+  }
+  else if(function=="act-cost"){
     act_cost = value;
                  } //else if(function=="dummy1"){
                     //duy = value;              
                     ////cout << parameter << " " << value << endl;
-                 //}
+                 //}egions[reg[i]] 
                  }
                }
 
@@ -176,8 +188,7 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
          }
 
          double VisitSolver::calculateExtern(double external, double total_cost){
-       //float random1 = static_cast <float> (rand())/static_cast <float>(RAND_MAX);
-       double cost = 2;//random1; TODO: change it into distance + unc(trace)
+       double cost = act_dist;
        return cost;
      }
 
@@ -208,6 +219,7 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
      }
 
    }
+   // NOTA: IL CICLO WHILE (^) VIENE ESEGUITO 30 VOLTE (QUINDI TUTTO OK!)
 
    void VisitSolver::parseLandmark(string landmark_file){
 
@@ -237,15 +249,48 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
    
  }
 
+  double VisitSolver::compute_path(string from, string to){
+    //print_matrix("matrix.txt");
+    int f = extract_num(from);
+    int t = extract_num(to);
+    double distances[30] = {};
+    for (int o = 0; o < 30; o++) {
+      distances[o] = 10000;
+    }
+    bool visited[30] = {};
+    distances[f] = 0;
+    int n_visited = 1;
+    while(n_visited < 30) {
+      int u = find_unvis(distances, visited);
+      n_visited++;
+      visited[u] = true;
+      for (int v = 0; v < 30; v++) {
+        if(adj_matrix[u][v] != 0 && !visited[v] && distances[u] != INT_MAX && distances[u] + dist_matrix[u][v] < distances[v]) {
+          distances[v] = distances[u] + dist_matrix[u][v];
+        }
+      }
+    }
+    test(distances[t],"partial_distance.txt");
+    return distances[t];
+  }
 
-  void VisitSolver::distance_euc(string from, string to){
-    string wp[5] = {"wp0","wp1","wp2","wp3","wp4"};
+  int VisitSolver::find_unvis(double distances[30], bool visited[30]) {
+    int min_dist = INT_MAX;
+    int min_idx = -1;
+    for(int j = 0; j < 30; j++) {
+      if (!visited[j] && distances[j] < min_dist) {
+        min_dist = distances[j];
+        min_idx = j;
+      }
+    }
+    return min_idx;
+  }
+
+  double VisitSolver::distance_euc(string from, string to){
     map <string, string> regions;
-    regions["r0"] = wp[0];
-    regions["r1"] = wp[1];
-    regions["r2"] = wp[2];
-    regions["r3"] = wp[3];
-    regions["r4"] = wp[4];
+    for(int i = 0; i < 30; i++) {
+      regions[reg[i]] = wp[i];
+    }
 
     double x1 = waypoint[regions[from]].at(0);
     double y1 = waypoint[regions[from]].at(1);
@@ -254,15 +299,123 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
     double y2 = waypoint[regions[to]].at(1);
     
     distance = sqrt(pow((x2-x1),2) + pow((y2-y1),2));
-    test(distance,"test.txt");
+    return distance;
+  }
+
+  void VisitSolver::build_graph() {
+    int flag = 0;
+    int min_idx;
+    int n_links[30] = {};
+    for(int i = 0; i < 30; i++) {
+      flag = 0;
+      for(int j = 0; j < 30; j++) {
+        if(i != j) {
+          string a = to_string(i);
+          string b = to_string(j);
+          a = "r" + a;
+          b = "r" + b;
+          dist_matrix[i][j] = distance_euc(a,b);
+          useful_array[j] = dist_matrix[i][j];
+          //test(dist_matrix[i][j],"test_val.txt");
+        }
+        else {
+          dist_matrix[i][j] = 1000.0;          // Elements on the diagonal are set to a high value, so they do not interfere in the search for the minimum
+          useful_array[j] = dist_matrix[i][j];
+          //test(dist_matrix[i][j],"test.txt");     // UNCOMMENT FOR DEBUGGING
+        }
+      }
+      while(n_links[i] < k && flag < 30) {
+        min_idx = find_min(); 
+        if (n_links[min_idx] < k) {
+          adj_matrix[i][min_idx] = 1;
+          adj_matrix[min_idx][i] = 1;
+          n_links[i]++;
+          n_links[min_idx]++;
+        }
+        else {
+          flag++;
+        }
+      }
+    }
+    for(int i = 0; i < 30; i++) {
+      for(int j = 0; j < 30; j++) {
+        if(adj_matrix[i][j] == 0) {
+          test(0.0,"adj.txt");              // UNCOMMENT FOR DEBUGGING
+        }
+        else if (adj_matrix[i][j] == 1) {
+          test(1.0,"adj.txt");              // UNCOMMENT FOR DEBUGGING
+          test2(i,"conn.txt");
+          test2(j,"conn.txt");
+          test3(" ","conn.txt");
+        }
+      }
+      test3(" ","adj.txt");
+    }
+  }
+
+  int VisitSolver::find_min() {
+    int min = useful_array[0];
+    int min_index = 0;
+    //test(useful_array[0],"adj.txt");
+    for(int l = 1; l < 30; l++) {
+      if(useful_array[l] < min) {
+        //test(useful_array[l],"adj.txt");
+        min_index = l;
+        min = useful_array[l];
+      }
+    }
+    useful_array[min_index] = 100.0;
+    return min_index;
   }
 
   void VisitSolver::test(double d, const std::string& nomeFile) {
-    std::ofstream file(nomeFile);
+    std::ofstream file(nomeFile, std::ios::app);
     if (file.is_open()) {
         file << d;
+        file << " ";
         file.close();
-        std::cout << "Numero reale scritto sul file con successo." << std::endl;
+        //std::cout << "Numero reale scritto sul file con successo." << std::endl;
+    } else {
+        std::cout << "Impossibile aprire il file." << std::endl;
+    }
+  }
+
+  void VisitSolver::test2(int i, const std::string& nomeFile) {
+    std::ofstream file(nomeFile, std::ios::app);
+    if (file.is_open()) {
+        file << i;
+        file << " ";
+        file.close();
+        //std::cout << "Numero reale scritto sul file con successo." << std::endl;
+    } else {
+        std::cout << "Impossibile aprire il file." << std::endl;
+    }
+  }
+
+  void VisitSolver::test3(string s, const std::string& nomeFile) {
+    std::ofstream file(nomeFile, std::ios::app);
+    if (file.is_open()) {
+        file << s;
+        file << "\n";
+        file.close();
+        //std::cout << "Numero reale scritto sul file con successo." << std::endl;
+    } else {
+        std::cout << "Impossibile aprire il file." << std::endl;
+    }
+  }
+
+  void VisitSolver::print_matrix(const std::string& nomeFile) {
+    std::ofstream file(nomeFile, std::ios::app);
+    if (file.is_open()) {
+        for (int i = 0; i < 30; i++) {
+          for (int j = 0; j < 30; j++) {
+            file << adj_matrix[i][j];
+            file << " ";
+          }
+          file << "\n";
+        }
+        file.close();
+        //std::cout << "Numero reale scritto sul file con successo." << std::endl;
     } else {
         std::cout << "Impossibile aprire il file." << std::endl;
     }
@@ -282,13 +435,14 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
     outfile<<"wp1[-2.5,2.5,0]"<<std::endl;
     outfile<<"wp2[2.5,2.5,1.57]"<<std::endl;
     outfile<<"wp3[-2.5,-2.5,3.14]"<<std::endl;
-    outfile<<"wp4[2.5,-2.5,-1.57]"<<std::endl;
+    outfile << "wp4[2.5,-2.5,-1.57]" << std::endl;
+    outfile << "wp5[3,0,0]" << std::endl;
     // Initialize the random number generator 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(-3.0, 3.0);
     // Setting random value for x,y waypoints
-    for (int i = 5; i <= 28; i++){
+    for (int i = 6; i <= 29; i++){
         for(int j = 0; j <= 2; j++){
             waypoints[i][j] = dis(gen);
             waypoints[i][j] = std::trunc(waypoints[i][j] * 100.0) / 100.0;
@@ -305,5 +459,16 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
     outfile.close();
   } 
 
-
-
+  int VisitSolver::extract_num(string r){
+    string num = r.substr(1);
+    int n = 0;
+    for (char c : num) {
+        if (std::isdigit(c)) {
+            n = n * 10 + (c - '0');
+        } else {
+            std::cout << "Errore: La stringa contiene caratteri non numerici." << std::endl;
+            return -1;
+        }
+    }
+    return n;
+  }
