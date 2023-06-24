@@ -14,8 +14,11 @@
  )
 
 (:goal 
+     ; if you want change the region of the assignments, you have to change r1 and/or r4 
+     ; in collected predicate; obviously the cost may change
      (and (collected r1) (collected r4) (robot_in R2D2 r5))
 )
      (:metric minimize (act-cost))
 )
+
 
